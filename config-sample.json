@@ -1,0 +1,23 @@
+{
+    "bridge": {
+        "name": "Homebridge2",
+        "username": "CC:22:3D:E3:CE:32",
+        "port": 51826,
+        "pin": "031-45-155"
+    },
+    
+    "description": "This has some fake accessories",
+
+    "accessories": [
+        {
+            "accessory":      "MClimate-Melissa",
+            "name":           "Melissa",
+            "melissa_name":   "Melissa",
+            "serial_number":  "1NRY6951JBQC",
+            "access_token":   "a990192d74b2d1d6da1fcf376588474d5355a1a1"
+
+        }
+    ],
+
+    "platforms": []
+}

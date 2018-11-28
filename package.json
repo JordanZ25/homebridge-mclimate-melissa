@@ -1,0 +1,42 @@
+{
+  "_from": "homebridge-Mclimate-melissa",
+  "_id": "homebridge-melissa@0.0.3",
+  "_inBundle": false,
+  "_integrity": "sha1-yuoONqekkUW0co0+XuBcgMdgqQY=",
+  "_location": "/homebridge-melissa",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "homebridge-melissa",
+    "name": "homebridge-melissa",
+    "escapedName": "homebridge-melissa",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER"
+  ],
+  "_resolved": "https://registry.npmjs.org/homebridge-melissa/-/homebridge-melissa-0.0.3.tgz",
+  "_shasum": "caea0e36a7a49145b4728d3e5ee05c80c760a906",
+  "_spec": "homebridge-melissa",
+  "_where": "/Users/mac",
+  "bundleDependencies": false,
+  "dependencies": {
+    "axios": "^0.18.0",
+    "request": "^2.65.0"
+  },
+  "deprecated": false,
+  "description": "Mclimate smart plug plugin for homebridge: https://github.com/nfarina/homebridge",
+  "engines": {
+    "homebridge": ">=0.2.0",
+    "node": ">=0.12.0"
+  },
+  "keywords": [
+    "homebridge-plugin"
+  ],
+  "license": "MIT",
+  "name": "homebridge-melissa",
+  "version": "0.0.3"
+}
