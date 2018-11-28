@@ -12,16 +12,18 @@ function MelissaAccessory(log, config) {
     this.melissaName = config["melissa_name"] || this.name; 
     this.binaryState = 0; 
     this.log("Starting a Melissa with name '" + this.melissaName + "'...");
+    this.serial_number = config['serial_number'];
+    this.access_token = config['access_token'];
 }
 MelissaAccessory.prototype.getServices = function() {
     var melissaService = new Service.Thermostat(this.name);
     melissaService.getCharacteristic(Characteristic.TargetTemperature).on('set', (value, callback) => {
         axios({
             method: 'get',
-            url: 'https://developer-api.seemelissa.com/v1/controllers/GCXV6958POH3',
+            url: 'https://developer-api.seemelissa.com/v1/controllers/'+ this.serial_number,
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer 9fa769435fccd8b29d2c21eeac2bf770112bfcd2'
+                'Authorization': 'Bearer ' + this.access_token
             }
         }).then(function(response) {
             var controller = response.data.controller;
@@ -33,7 +35,7 @@ MelissaAccessory.prototype.getServices = function() {
                 method: 'post',
                 url: 'https://developer-api.seemelissa.com/v1/provider/send',
                 data: {
-                    "serial_number": "GCXV6958POH3",
+                    "serial_number": this.serial_number,
                     "command": "send_ir_code",
                     "state": state,
                     "mode": mode,
@@ -42,7 +44,7 @@ MelissaAccessory.prototype.getServices = function() {
                 },
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer 9fa769435fccd8b29d2c21eeac2bf770112bfcd2'
+                    'Authorization': 'Bearer ' + this.access_token
                 }
             }).then(function(response) {
                 console.log("Set the Temperature on '%s' to %s", this.melissaName, value);
@@ -57,7 +59,7 @@ MelissaAccessory.prototype.getServices = function() {
             url: 'https://developer-api.seemelissa.com/v1/controllers/GCXV6958POH3',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer 9fa769435fccd8b29d2c21eeac2bf770112bfcd2'
+                'Authorization': 'Bearer ' + this.access_token
             }
         }).then(function(response) {
             var controller = response.data.controller;
@@ -73,7 +75,7 @@ MelissaAccessory.prototype.getServices = function() {
             url: 'https://developer-api.seemelissa.com/v1/controllers/GCXV6958POH3',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer 9fa769435fccd8b29d2c21eeac2bf770112bfcd2'
+                'Authorization': 'Bearer ' + this.access_token
             }
         }).then(function(response) {
             var controller = response.data.controller;
@@ -109,7 +111,7 @@ MelissaAccessory.prototype.getServices = function() {
                 method: 'post',
                 url: 'https://developer-api.seemelissa.com/v1/provider/send',
                 data: {
-                    "serial_number": "GCXV6958POH3",
+                    "serial_number": this.serial_number,
                     "command": "send_ir_code",
                     "state": state,
                     "mode": mode,
@@ -118,7 +120,7 @@ MelissaAccessory.prototype.getServices = function() {
                 },
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer 9fa769435fccd8b29d2c21eeac2bf770112bfcd2'
+                    'Authorization': 'Bearer ' + this.access_token
                 }
             }).then(function(response) {
                 console.log("Set the Temperature on '%s' to %s", this.melissaName, value);
@@ -133,7 +135,7 @@ MelissaAccessory.prototype.getServices = function() {
             url: 'https://developer-api.seemelissa.com/v1/controllers/GCXV6958POH3',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer 9fa769435fccd8b29d2c21eeac2bf770112bfcd2'
+                'Authorization': 'Bearer ' + this.access_token
             }
         }).then(function(response) {
             var controller = response.data.controller;
