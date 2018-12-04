@@ -17,13 +17,44 @@ function MelissaAccessory(log, config) {
 }
 MelissaAccessory.prototype.getServices = function() {
     var melissaService = new Service.Thermostat(this.name);
+
+
+
+        melissaService.getCharacteristic(Characteristic.CurrentTemperature).on('get',(callback) =>
+        {
+            axios({
+                method: 'post',
+                url: 'https://developer-api.seemelissa.com/v1/provider/fetch',
+                data: {
+                        "serial_number": this.serial_number
+                    },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + this.access_token
+                }
+            }).then(function(response) {
+
+                var temp = response.data.provider.temp;
+               callback(null,temp)
+            })
+
+        })
+
+
+
+
+
+
     melissaService.getCharacteristic(Characteristic.TargetTemperature).on('set', (value, callback) => {
+        var self = this;
+        console.log(this.serial_number)
+            console.log(this.access_token)
         axios({
             method: 'get',
-            url: 'https://developer-api.seemelissa.com/v1/controllers/'+ this.serial_number,
+            url: 'https://developer-api.seemelissa.com/v1/controllers/'+ self.serial_number,
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + this.access_token
+                'Authorization': 'Bearer ' + self.access_token
             }
         }).then(function(response) {
             var controller = response.data.controller;
@@ -31,11 +62,12 @@ MelissaAccessory.prototype.getServices = function() {
             var state = command_log.state;
             var mode = command_log.mode;
             var fan = command_log.fan;
+
             axios({
                 method: 'post',
                 url: 'https://developer-api.seemelissa.com/v1/provider/send',
                 data: {
-                    "serial_number": this.serial_number,
+                    "serial_number": self.serial_number,
                     "command": "send_ir_code",
                     "state": state,
                     "mode": mode,
@@ -44,19 +76,18 @@ MelissaAccessory.prototype.getServices = function() {
                 },
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + this.access_token
+                    'Authorization': 'Bearer ' + self.access_token
                 }
             }).then(function(response) {
-                console.log("Set the Temperature on '%s' to %s", this.melissaName, value);
+                console.log("Set the Temperature on '%s' to %s", self.melissaName, value);
             })
         })
-        // console.log('in set')
-        // console.log(value);
+        
         callback(null);
     }).on('get', (callback) => {
         axios({
             method: 'get',
-            url: 'https://developer-api.seemelissa.com/v1/controllers/GCXV6958POH3',
+            url: 'https://developer-api.seemelissa.com/v1/controllers/'+this.serial_number,
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + this.access_token
@@ -70,9 +101,10 @@ MelissaAccessory.prototype.getServices = function() {
         })
     })
     melissaService.getCharacteristic(Characteristic.TargetHeatingCoolingState).on('set', (value, callback) => {
+        var self = this;
         axios({
             method: 'get',
-            url: 'https://developer-api.seemelissa.com/v1/controllers/GCXV6958POH3',
+            url: 'https://developer-api.seemelissa.com/v1/controllers/' + this.serial_number,
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + this.access_token
@@ -111,7 +143,7 @@ MelissaAccessory.prototype.getServices = function() {
                 method: 'post',
                 url: 'https://developer-api.seemelissa.com/v1/provider/send',
                 data: {
-                    "serial_number": this.serial_number,
+                    "serial_number": self.serial_number,
                     "command": "send_ir_code",
                     "state": state,
                     "mode": mode,
@@ -120,19 +152,20 @@ MelissaAccessory.prototype.getServices = function() {
                 },
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + this.access_token
+                    'Authorization': 'Bearer ' + self.access_token
                 }
             }).then(function(response) {
-                console.log("Set the Temperature on '%s' to %s", this.melissaName, value);
+                console.log("Set the mode on '%s' to %s", self.melissaName, value);
             })
         })
         console.log('in set State')
         console.log(value);
         callback(null);
     }).on('get', (callback) => {
+
         axios({
             method: 'get',
-            url: 'https://developer-api.seemelissa.com/v1/controllers/GCXV6958POH3',
+            url: 'https://developer-api.seemelissa.com/v1/controllers/'+this.serial_number,
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + this.access_token
@@ -160,7 +193,6 @@ MelissaAccessory.prototype.getServices = function() {
                         modeForCallback = 0;
                 }
             }
-            // console.log('in get ' + modeForCallback)
             callback(null, modeForCallback);
         })
     })
