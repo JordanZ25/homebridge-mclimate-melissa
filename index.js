@@ -1,5 +1,6 @@
 var Service, Characteristic;
 const axios = require('axios');
+var localStorage = require('localStorage')
 module.exports = function(homebridge) {
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
@@ -9,49 +10,71 @@ module.exports = function(homebridge) {
 function MelissaAccessory(log, config) {
     this.log = log;
     this.name = config["name"];
-    this.melissaName = config["melissa_name"] || this.name; 
-    this.binaryState = 0; 
+    this.melissaName = config["melissa_name"] || this.name;
+    this.binaryState = 0;
     this.log("Starting a Melissa with name '" + this.melissaName + "'...");
     this.serial_number = config['serial_number'];
     this.access_token = config['access_token'];
+    this.refresh_token = config['refresh_token'];
+    localStorage.setItem("refresh_token", config['refresh_token']);
+    axios.interceptors.response.use(undefined, err => {
+        const originalRequest = err.config;
+        console.log('interceptors')
+        console.log(err.response.status);
+        if (err.response.status === 401 && !originalRequest._retry) {
+            console.log(this.refresh_token)
+           return axios({
+                method: 'post',
+                url: 'https://developer-api.seemelissa.com/v1/auth/renew',
+                data: {
+                    "client_id": "5c068a81ab1b0",
+                    "client_secret": "5c068a81ab109",
+                    "refresh_token": this.refresh_token
+                },
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then((response) => {
+                console.log(response)
+                this.access_token = response.data.auth.access_token;
+                axios.defaults.headers.common['Authorization'] = `Bearer ${this.access_token}`
+                originalRequest.headers['Authorization'] = `Bearer ${this.access_token}`
+                originalRequest._retry = true;
+                return axios(originalRequest);
+            }).catch((error)=>{
+                console.log('here')
+                console.log(error)
+                // return Promise.reject(error);
+            })
+        }
+    })
 }
 MelissaAccessory.prototype.getServices = function() {
     var melissaService = new Service.Thermostat(this.name);
-
-
-
-        melissaService.getCharacteristic(Characteristic.CurrentTemperature).on('get',(callback) =>
-        {
-            axios({
-                method: 'post',
-                url: 'https://developer-api.seemelissa.com/v1/provider/fetch',
-                data: {
-                        "serial_number": this.serial_number
-                    },
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer ' + this.access_token
-                }
-            }).then(function(response) {
-
-                var temp = response.data.provider.temp;
-               callback(null,temp)
-            })
-
+    melissaService.getCharacteristic(Characteristic.CurrentTemperature).on('get', (callback) => {
+        var self = this;
+        axios({
+            method: 'post',
+            url: 'https://developer-api.seemelissa.com/v1/provider/fetch',
+            data: {
+                "serial_number": this.serial_number
+            },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + this.access_token
+            }
+        }).then(function(response) {
+            var temp = response.data.provider.temp;
+            callback(null, temp)
         })
-
-
-
-
-
-
+    })
     melissaService.getCharacteristic(Characteristic.TargetTemperature).on('set', (value, callback) => {
         var self = this;
         console.log(this.serial_number)
-            console.log(this.access_token)
+        console.log(this.access_token)
         axios({
             method: 'get',
-            url: 'https://developer-api.seemelissa.com/v1/controllers/'+ self.serial_number,
+            url: 'https://developer-api.seemelissa.com/v1/controllers/' + self.serial_number,
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + self.access_token
@@ -62,7 +85,6 @@ MelissaAccessory.prototype.getServices = function() {
             var state = command_log.state;
             var mode = command_log.mode;
             var fan = command_log.fan;
-
             axios({
                 method: 'post',
                 url: 'https://developer-api.seemelissa.com/v1/provider/send',
@@ -82,12 +104,11 @@ MelissaAccessory.prototype.getServices = function() {
                 console.log("Set the Temperature on '%s' to %s", self.melissaName, value);
             })
         })
-        
         callback(null);
     }).on('get', (callback) => {
         axios({
             method: 'get',
-            url: 'https://developer-api.seemelissa.com/v1/controllers/'+this.serial_number,
+            url: 'https://developer-api.seemelissa.com/v1/controllers/' + this.serial_number,
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + this.access_token
@@ -162,10 +183,9 @@ MelissaAccessory.prototype.getServices = function() {
         console.log(value);
         callback(null);
     }).on('get', (callback) => {
-
         axios({
             method: 'get',
-            url: 'https://developer-api.seemelissa.com/v1/controllers/'+this.serial_number,
+            url: 'https://developer-api.seemelissa.com/v1/controllers/' + this.serial_number,
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Bearer ' + this.access_token
